@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { jwtSecret } = require("../secrets"); // use this secret!
+const {findBy} = require('../users/users-model');
 
 const restricted = (req, res, next) => {
   const token = req.headers.authorization;
@@ -53,7 +54,15 @@ const only = role_name => (req, res, next) => {
 }
 
 
-const checkUsernameExists = (req, res, next) => {
+const checkUsernameExists = async (req, res, next) => {
+  const {username} = req.body;
+  const [user] = await findBy({username});
+  if (!user) {
+    next({message: "Invalid credentials", status: 401});
+  } else {
+    next();
+  }
+
   /*
     If the username in req.body does NOT exist in the database
     status 401
